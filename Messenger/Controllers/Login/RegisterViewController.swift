@@ -161,11 +161,10 @@ class RegisterViewController: UIViewController, UITextFieldDelegate {
     }
     @objc private func registerButtonTapped() //validation of the credentials
     {
-        let email = emailField.text!
-        let password = passwordField.text!
-        let firstName = firstNameField.text!
-        let lastName = lastNameField.text!
-        
+        guard let email = emailField.text,let password = passwordField.text,let firstName = firstNameField.text,let lastName = lastNameField.text, !email.isEmpty, !password.isEmpty, !firstName.isEmpty, !lastName.isEmpty else{
+            alertUserLoginError()
+            return
+        }
         DatabaseManager.shared.userExists(with: email, completion: {[weak self]exists in
             guard !exists else
             {
@@ -174,36 +173,24 @@ class RegisterViewController: UIViewController, UITextFieldDelegate {
                 return
             }
             //user does not exists. Hence creating a new user.
-            
-            //if the emailfield and userfield is not filled or if the password is not atleast 6 characters long we call the alert message
-            if (!email.isEmpty && !password.isEmpty && !firstName.isEmpty && !lastName.isEmpty && password.count>=6)
+        Auth.auth().createUser(withEmail: email, password: password,completion: {[weak self] result,error in
+            guard let strongSelf = self else
             {
-                //Fire Base register
-                Auth.auth().createUser(withEmail: email, password: password,completion: {[weak self] result,error in
-                    guard let strongSelf = self else
-                    {
-                        return
-                    }
-                    if error != nil
-                    {
-                        print(error!.localizedDescription)
-                    }
-                    else
-                    {
-                        let user = result?.user
-                        print("Registered user \(String(describing: user))")
-                        strongSelf.navigationController?.dismiss(animated: true)
-                    }
-                })
-                
-                DatabaseManager.shared.insertUser(with: ChatAppUser(firstName: firstName, lastName: lastName, emailAddress: email)) //calling insertUser from Database Manager
-                
+                return
+            }
+            if error != nil
+            {
+                print(error!.localizedDescription)
             }
             else
             {
-                self!.alertUserLoginError()
-                return
+                let user = result?.user
+                print("Registered user \(String(describing: user))")
+                strongSelf.navigationController?.dismiss(animated: true)
             }
+         })
+            
+            DatabaseManager.shared.insertUser(with: ChatAppUser(firstName: firstName, lastName: lastName, emailAddress: email)) //calling insertUser from Database Manager
         })
     }
     

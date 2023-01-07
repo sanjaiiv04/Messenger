@@ -1,7 +1,8 @@
 import UIKit
 import Firebase
+import GoogleSignIn
+import GoogleSignInSwift
 class LoginViewController: UIViewController, UITextFieldDelegate {
-
     private let scrollView:UIScrollView =
     {
         let scrollView=UIScrollView()
@@ -67,10 +68,10 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
         title = "Log In"
         view.backgroundColor = .white
         /*let gradientLayer = CAGradientLayer()
-        gradientLayer.frame = view.bounds
-        gradientLayer.colors = [UIColor.purple.cgColor,UIColor.systemPink.cgColor]
-        
-        view.layer.addSublayer(gradientLayer)*/
+         gradientLayer.frame = view.bounds
+         gradientLayer.colors = [UIColor.purple.cgColor,UIColor.systemPink.cgColor]
+         
+         view.layer.addSublayer(gradientLayer)*/
         
         navigationItem.rightBarButtonItem=UIBarButtonItem(title: "Register", style: .done, target: self, action: #selector(didTapRegister)) //setting the navigation button on the right side of the navigation bar to navigate from login page to resgister page
         
@@ -95,7 +96,7 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
         imageView.frame=CGRect(x:size+15, y: 100, width: size-30, height:size-30)
         emailField.frame=CGRect(x:30, y: imageView.bottom + 30, width: scrollView.width-60,height: 52)
         passwordField.frame=CGRect(x:30, y: emailField.bottom + 20, width: scrollView.width-60,height: 52)
-        LoginButton.frame=CGRect(x:size+30, y: passwordField.bottom + 40, width: 70,height: 50)
+        LoginButton.frame=CGRect(x:30, y: passwordField.bottom + 40, width:scrollView.width-60,height: 52)
         
     }
     
@@ -107,35 +108,29 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
     }
     @objc private func loginButtonTapped() //validation of the credentials
     {
-        let email = emailField.text!
-        let password = passwordField.text!
         
         //if the emailfield and userfield is not filled or if the password is not atleast 6 characters long we call the alert message
-        if (!email.isEmpty && !password.isEmpty && password.count>=6)
-        {
-            Auth.auth().signIn(withEmail: email, password: password,completion: {[weak self]result,error in
-                guard let strongSelf=self else
-                {
-                    return
-                }
-                if error != nil
-                {
-                    print(error!.localizedDescription)
-                }
-                else
-                {
-                    let user = result?.user
-                    print("Logged in \(String(describing: user))")
-                    strongSelf.navigationController?.dismiss(animated: true)
-                }
-            })
-        }
-        else
-        {
+        guard let email = emailField.text, let password = passwordField.text,!email.isEmpty,!password.isEmpty else{
             alertUserLoginError()
             return
         }
-        //Firebase login
+        //firebase login
+        Auth.auth().signIn(withEmail: email, password: password,completion: {[weak self]result,error in
+            guard let strongSelf=self else
+            {
+                return
+            }
+            if error != nil
+            {
+                print(error!.localizedDescription)
+            }
+            else
+            {
+                let user = result?.user
+                print("Logged in \(String(describing: user))")
+                strongSelf.navigationController?.dismiss(animated: true)
+            }
+        })
     }
     
     func alertUserLoginError() //setting alert message for the user
@@ -144,7 +139,9 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
         present(alert,animated: true)
         alert.addAction(UIAlertAction(title: "Dismiss", style: .cancel)) //giving a dismiss option for the user
     }
+    
 }
+    
 
 //if the user types the password and clicks enter then loginButtonTapped is automatically called without explicitly pressing the button
 extension LoginViewController:UITextViewDelegate
