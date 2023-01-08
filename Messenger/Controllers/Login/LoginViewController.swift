@@ -1,8 +1,10 @@
 import UIKit
 import Firebase
 import GoogleSignIn
-import GoogleSignInSwift
+import JGProgressHUD
 class LoginViewController: UIViewController, UITextFieldDelegate {
+    
+    private let spinner = JGProgressHUD(style: .dark)
     private let scrollView:UIScrollView =
     {
         let scrollView=UIScrollView()
@@ -114,11 +116,17 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
             alertUserLoginError()
             return
         }
+        
+        
+        spinner.show(in: view)
         //firebase login
         Auth.auth().signIn(withEmail: email, password: password,completion: {[weak self]result,error in
             guard let strongSelf=self else
             {
                 return
+            }
+            DispatchQueue.main.async {
+                strongSelf.spinner.dismiss(animated: true)//spinner animation
             }
             if error != nil
             {
@@ -141,8 +149,6 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
     }
     
 }
-    
-
 //if the user types the password and clicks enter then loginButtonTapped is automatically called without explicitly pressing the button
 extension LoginViewController:UITextViewDelegate
 {

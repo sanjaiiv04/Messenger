@@ -1,7 +1,9 @@
 import UIKit
 import Firebase
+import JGProgressHUD
 class RegisterViewController: UIViewController, UITextFieldDelegate {
 
+    private let spinner = JGProgressHUD(style: .dark)
     private let scrollView:UIScrollView =
     {
         let scrollView=UIScrollView()
@@ -165,7 +167,15 @@ class RegisterViewController: UIViewController, UITextFieldDelegate {
             alertUserLoginError()
             return
         }
+        spinner.show(in: view)
         DatabaseManager.shared.userExists(with: email, completion: {[weak self]exists in
+            guard let strongSelf=self else
+            {
+                return
+            }
+            DispatchQueue.main.async {
+                strongSelf.spinner.dismiss(animated: true)
+            }
             guard !exists else
             {
                 //user exists already
