@@ -199,8 +199,28 @@ class RegisterViewController: UIViewController, UITextFieldDelegate {
                 strongSelf.navigationController?.dismiss(animated: true)
             }
          })
-            
-            DatabaseManager.shared.insertUser(with: ChatAppUser(firstName: firstName, lastName: lastName, emailAddress: email)) //calling insertUser from Database Manager
+            let chatUser = ChatAppUser(firstName: firstName, lastName: lastName, emailAddress: email)
+            DatabaseManager.shared.insertUser(with:chatUser,completion: {success in
+                if success
+                {
+                    //upload image
+                    guard let image = self?.imageView.image,let data=image.pngData() else
+                    {
+                        return
+                    }
+                    let fileName=chatUser.profilePicFileName
+                    StorageManager.shared.uploadProfilePic(with: data, fileName: fileName, completion: {result in
+                        switch result
+                        {
+                        case .success(let downloadUrl):
+                            UserDefaults.standard.set(downloadUrl, forKey: "profile_pic_url")
+                            print(downloadUrl)
+                        case .failure(let error):
+                            print("\(error)")
+                        }
+                    })
+                }
+            }) //calling insertUser from Database Manager
         })
     }
     

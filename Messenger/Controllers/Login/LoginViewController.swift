@@ -135,6 +135,7 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
             else
             {
                 let user = result?.user
+                UserDefaults.standard.set(email, forKey: "email")//caching the email when the user logs in
                 print("Logged in \(String(describing: user))")
                 strongSelf.navigationController?.dismiss(animated: true)
             }
